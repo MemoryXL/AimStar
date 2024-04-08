@@ -37,7 +37,7 @@ Contributors:
 */
 
 namespace fs = filesystem;
-bool otp = false;
+bool otp = true;
 string fileName;
 
 void Exit()
@@ -183,48 +183,12 @@ int main()
 	if (tempPath != nullptr)
 	{
 		fileName = std::string(tempPath) + "\\Aimstar";
-		otp = Init::Verify::isVerified(fileName);
 	}
 
-	if (otp)
-	{
-		Cheat();
-	}
-	else
-	{
-		// OTP Window
-		WNDCLASS wc = { 0 };
-		const wchar_t CLASS_NAME[] = L"OTPInputClass";
-
-		wc.lpfnWndProc = WndProc;
-		wc.hInstance = GetModuleHandle(NULL);
-		wc.lpszClassName = CLASS_NAME;
-
-		RegisterClass(&wc);
-
-		HWND hwnd = CreateWindowEx(
-			0, CLASS_NAME, L"Verify", WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, 400, 200,
-			NULL, NULL, GetModuleHandle(NULL), NULL
-		);
-
-		if (hwnd == NULL) {
-			return 0;
-		}
-
-		ShowWindow(hwnd, SW_SHOW);
-
-		MSG msg;
-		while (GetMessage(&msg, NULL, 0, 0)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
+	Cheat();
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	if (!otp)
-		cout << "Please enter your OTP code! Get the OTP code from: https://aimstar.tkm.icu" << endl;
 	static int RetTimes = 0;
 
 	switch (message) {
