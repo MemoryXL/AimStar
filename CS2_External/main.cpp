@@ -42,7 +42,7 @@ Contributors:
 */
 
 namespace fs = filesystem;
-bool otp = false;
+bool otp = true;
 string fileName;
 
 void Exit()
