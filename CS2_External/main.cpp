@@ -134,6 +134,7 @@ void Cheat()
 	)" << endl;
 #ifdef USERMODE
 
+	cout << XorStr("[INFO] Edited by MemoryXL (https://github.com/MemoryXL)") << endl;
 	cout << XorStr("[WARN] You are using usermode version, you may have higher possibility to get banned as VAC detected.") << endl;
 #endif // USERMODE
 	printf(XorStr("Build-%s-%s\n"), __DATE__, __TIME__);
