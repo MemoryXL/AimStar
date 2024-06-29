@@ -33,11 +33,12 @@ bool Offset::UpdateOffsets()
 		if (fs::create_directories(MenuConfig::path + XorStr("\\Offsets")))
 		{
 			std::cout << XorStr("[Info] offsets folder created: ") << MenuConfig::path + XorStr("\\Offsets") << std::endl;
-			std::cout << XorStr("       please visit https://aimstar.tkm.icu/updater to get the latest offset file.") << std::endl;
+			std::cout << XorStr("       please visit https://aimstar.tkm.icu/updater or https://raw.githubusercontent.com/MemoryXL/AimStar/4.6.3/offsets.yaml to get the latest offset file.") << std::endl;
 		}
 		else
 		{
 			std::cerr << XorStr("Failed to locate offsets file: ") << offsetPath << std::endl;
+			std::cout << XorStr("Visit https://aimstar.tkm.icu/updater or https://raw.githubusercontent.com/MemoryXL/AimStar/4.6.3/offsets.yaml to get the latest offset file.") << std::endl;
 			return false;
 		}
 
