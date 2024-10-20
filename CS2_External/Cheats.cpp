@@ -402,7 +402,7 @@ void Cheats::Run() noexcept
 			}
 
 			// Check if ESP should be rendered based on hotkey state
-			if (ESPConfig::ESPenabled && GetAsyncKeyState(ESP::HotKey) & 0x8000 || ESPConfig::AlwaysActive) {
+			if (ESPConfig::ESPenabled && (GetAsyncKeyState(ESP::HotKey) & 0x8000 || ESPConfig::AlwaysActive)) {
 				bool renderSuccess = false;
 				const int maxRetries = 3; // Maximum retries for rendering
 				for (int attempt = 0; attempt < maxRetries; ++attempt) {
