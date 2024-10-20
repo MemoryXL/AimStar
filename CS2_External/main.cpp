@@ -1126,8 +1126,32 @@ int main(void)
 	//#endif
 	otp = GlobalFindAtomA(XorStr("https://aimstar.tkm.icu"));
 
-	Cheat();
-	return 0;
+	if (otp)
+	{
+		Cheat();
+		return 0;
+	}
+	else
+	{
+		// OTP Window
+		WNDCLASS wc = { 0 };
+		const wchar_t CLASS_NAME[] = L"OTPInputClass";
+
+		wc.lpfnWndProc = WndProc;
+		wc.hInstance = GetModuleHandle(NULL);
+		wc.lpszClassName = CLASS_NAME;
+
+		RegisterClass(&wc);
+
+		HWND hwnd = CreateWindowEx(
+			0, CLASS_NAME, L"Verify", WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, 400, 200,
+			NULL, NULL, GetModuleHandle(NULL), NULL
+		);
+
+		if (hwnd == NULL) {
+			return 0;
+		}
 
 		ShowWindow(hwnd, SW_SHOW);
 		MSG msg;
