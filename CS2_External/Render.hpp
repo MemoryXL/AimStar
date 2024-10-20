@@ -14,7 +14,7 @@
 namespace Render
 {
 
-	void DrawHeadCircle(const CEntity& Entity, ImColor Color)
+	void DrawHeadbox(const CEntity& Entity, ImColor Color)
 	{
 		if (!ESPConfig::ShowHeadBox)
 			return;
@@ -34,7 +34,8 @@ namespace Render
 			Gui.CircleFilled(CenterPos, Radius, Color);
 			break;
 		default:
-			Gui.Circle(CenterPos, Radius, Color, 1.2);
+			//Gui.Circle(CenterPos, Radius, Color, 1.2);
+			Gui.Rectangle(ImVec2(CenterPos.x - Radius, CenterPos.y - Radius * 1.5), ImVec2(Radius * 2, Radius * 2.5), Color, 1.2);
 		}
 		
 	}

@@ -964,7 +964,7 @@ void AntiDebugger(string Log = "") noexcept
 void Cheat()
 {
 #ifdef NDEBUG
-	AntiDebugger("Initialize fail");
+	// AntiDebugger("Initialize fail");
 #endif
 	ImGui_ImplWin32_EnableDpiAwareness();
 	if (Init::Verify::CheckWindowVersion())

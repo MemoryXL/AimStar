@@ -119,7 +119,7 @@ namespace ESP
 		Render::DrawBone(Entity, ESPConfig::BoneColor, 1.3f);
 		Render::ShowPenis(Entity, ESPConfig::PenisLength, ESPConfig::PenisColor, ESPConfig::PenisSize);
 		Render::ShowLosLine(Entity, 50.0f, ESPConfig::EyeRayColor, 1.3f);
-		Render::DrawHeadCircle(Entity, ESPConfig::HeadBoxColor);
+		Render::DrawHeadbox(Entity, ESPConfig::HeadBoxColor);
 
 		// box
 		if (ESPConfig::FilledBox) {
