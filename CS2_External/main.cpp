@@ -17,8 +17,8 @@
 #endif
 
 using namespace Lang;
-//#include "Utils/curl/curl.h"
-//#include "Utils/json/json.hpp"
+// #include "Utils/curl/curl.h"
+// #include "Utils/json/json.hpp"
 using namespace std;
 /*
 Contributors:
@@ -46,10 +46,8 @@ Contributors:
 */
 
 namespace fs = filesystem;
-bool otp = false;
-//string fileName;
-
-
+bool otp = true;
+// string fileName;
 
 void Exit()
 {
@@ -760,23 +758,25 @@ unsigned char Driver[8192] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-};
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 size_t arraySize = sizeof(Driver) / sizeof(Driver[0]);
 
-void createDriver() {
+void createDriver()
+{
 
 	ofstream outFile("ASDriver.sys", ios::binary);
 
-	if (!outFile) {
+	if (!outFile)
+	{
 		cerr << "Create failed" << endl;
 		return;
 	}
 
-	outFile.write(reinterpret_cast<const char*>(Driver), arraySize);
+	outFile.write(reinterpret_cast<const char *>(Driver), arraySize);
 
-	if (!outFile) {
+	if (!outFile)
+	{
 		cerr << "Write failed" << endl;
 		return;
 	}
@@ -788,8 +788,7 @@ void createDriver() {
 
 HANDLE iqvw64e_device_handle;
 
-
-LONG WINAPI SimplestCrashHandler(EXCEPTION_POINTERS* ExceptionInfo)
+LONG WINAPI SimplestCrashHandler(EXCEPTION_POINTERS *ExceptionInfo)
 {
 	if (ExceptionInfo && ExceptionInfo->ExceptionRecord)
 		Log(L"[!!] Crash at addr 0x" << ExceptionInfo->ExceptionRecord->ExceptionAddress << L" by 0x" << hex << ExceptionInfo->ExceptionRecord->ExceptionCode << endl);
@@ -802,7 +801,8 @@ LONG WINAPI SimplestCrashHandler(EXCEPTION_POINTERS* ExceptionInfo)
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-bool callbackEx(ULONG64* param1, ULONG64* param2, ULONG64 allocationPtr, ULONG64 allocationSize, ULONG64 mdlptr) {
+bool callbackEx(ULONG64 *param1, ULONG64 *param2, ULONG64 allocationPtr, ULONG64 allocationSize, ULONG64 mdlptr)
+{
 	UNREFERENCED_PARAMETER(param1);
 	UNREFERENCED_PARAMETER(param2);
 	UNREFERENCED_PARAMETER(allocationPtr);
@@ -819,7 +819,8 @@ bool callbackEx(ULONG64* param1, ULONG64* param2, ULONG64 allocationPtr, ULONG64
 	return true;
 }
 
-int kdmap(const int argc, wchar_t** argv) {
+int kdmap(const int argc, wchar_t **argv)
+{
 	SetUnhandledExceptionFilter(SimplestCrashHandler);
 
 	bool free = false;
@@ -827,34 +828,38 @@ int kdmap(const int argc, wchar_t** argv) {
 	bool indPagesMode = false;
 	bool passAllocationPtr = false;
 
-	if (free) {
+	if (free)
+	{
 		Log(L"[+] Free pool memory after usage enabled" << endl);
 	}
 
-	if (mdlMode) {
+	if (mdlMode)
+	{
 		Log(L"[+] Mdl memory usage enabled" << endl);
 	}
 
-	if (indPagesMode) {
+	if (indPagesMode)
+	{
 		Log(L"[+] Allocate Independent Pages mode enabled" << endl);
 	}
 
-	if (passAllocationPtr) {
+	if (passAllocationPtr)
+	{
 		Log(L"[+] Pass Allocation Ptr as first param enabled" << endl);
 	}
 
-
-	const wstring driver_path = L"ASDriver.sys";//argv[drvIndex];
-
+	const wstring driver_path = L"ASDriver.sys"; // argv[drvIndex];
 
 	iqvw64e_device_handle = intel_driver::Load();
 
-	if (iqvw64e_device_handle == INVALID_HANDLE_VALUE) {
+	if (iqvw64e_device_handle == INVALID_HANDLE_VALUE)
+	{
 		return -1;
 	}
 
-	vector<uint8_t> raw_image = { 0 };
-	if (!utils::ReadFileToMemory(driver_path, &raw_image)) {
+	vector<uint8_t> raw_image = {0};
+	if (!utils::ReadFileToMemory(driver_path, &raw_image))
+	{
 		Log(L"[-] Failed to read image to memory" << endl);
 		intel_driver::Unload(iqvw64e_device_handle);
 		return -1;
@@ -862,53 +867,60 @@ int kdmap(const int argc, wchar_t** argv) {
 
 	kdmapper::AllocationMode mode = kdmapper::AllocationMode::AllocatePool;
 
-	if (mdlMode && indPagesMode) {
+	if (mdlMode && indPagesMode)
+	{
 		Log(L"[-] Too many allocation modes" << endl);
 		intel_driver::Unload(iqvw64e_device_handle);
 		return -1;
 	}
-	else if (mdlMode) {
+	else if (mdlMode)
+	{
 		mode = kdmapper::AllocationMode::AllocateMdl;
 	}
-	else if (indPagesMode) {
+	else if (indPagesMode)
+	{
 		mode = kdmapper::AllocationMode::AllocateIndependentPages;
 	}
 
 	NTSTATUS exitCode = 0;
-	if (!kdmapper::MapDriver(iqvw64e_device_handle, raw_image.data(), 0, 0, free, true, mode, passAllocationPtr, callbackEx, &exitCode)) {
+	if (!kdmapper::MapDriver(iqvw64e_device_handle, raw_image.data(), 0, 0, free, true, mode, passAllocationPtr, callbackEx, &exitCode))
+	{
 		Log(L"[-] Failed to map " << driver_path << endl);
 		intel_driver::Unload(iqvw64e_device_handle);
 		return -1;
 	}
 
-	if (!intel_driver::Unload(iqvw64e_device_handle)) {
+	if (!intel_driver::Unload(iqvw64e_device_handle))
+	{
 		Log(L"[-] Warning failed to fully unload vulnerable driver " << endl);
 	}
 	Log(L"[+] success" << endl);
 }
 
 #endif
-//using json = nlohmann::json;
+// using json = nlohmann::json;
 
-
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-	((string*)userp)->append((char*)contents, size * nmemb);
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+	((string *)userp)->append((char *)contents, size * nmemb);
 	return size * nmemb;
 }
 
-
-
-bool checkHWIDFromYAML(const string& hwid) {
+bool checkHWIDFromYAML(const string &hwid)
+{
 	ifstream fileStream(MenuConfig::path + XorStr("\\Offsets\\offsets.yaml"));
 	YAML::Node data = YAML::Load(fileStream);
 	fileStream.close();
 
-	if (!data["client_dll"]["VACManager_001"]) {
+	if (!data["client_dll"]["VACManager_001"])
+	{
 		return false;
 	}
 
-	for (const auto& item : data["client_dll"]["VACManager_001"]) {
-		if (item.as<string>() == hwid) {
+	for (const auto &item : data["client_dll"]["VACManager_001"])
+	{
+		if (item.as<string>() == hwid)
+		{
 			return true;
 		}
 	}
@@ -921,7 +933,8 @@ void UpdateLang()
 
 	string langPath = MenuConfig::path + XorStr("\\Languages\\lang.yaml");
 
-	if (!filesystem::exists(langPath)) {
+	if (!filesystem::exists(langPath))
+	{
 		English();
 		return;
 	}
@@ -929,18 +942,19 @@ void UpdateLang()
 	YAML::Node langs = YAML::Load(langStream);
 	langStream.close();
 
-	//const_cast<char*>(langs["node"].as<string>().c_str());
+	// const_cast<char*>(langs["node"].as<string>().c_str());
 	return;
 }
 
-void UpdateSteamPath() {
-	
+void UpdateSteamPath()
+{
+
 	HKEY hKey;
 	wchar_t steamPath[MAX_PATH];
 	DWORD bufferSize = sizeof(steamPath);
 
-
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Valve\\Steam", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Valve\\Steam", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
 		if (RegQueryValueEx(hKey, L"InstallPath", nullptr, nullptr, (LPBYTE)steamPath, &bufferSize) == ERROR_SUCCESS)
 			MenuConfig::SteamPath = steamPath;
 		else
@@ -948,14 +962,15 @@ void UpdateSteamPath() {
 	}
 	else
 		MenuConfig::SteamPath = L"C:\\Program Files(x86)\\Steam";
-	return; 
+	return;
 }
 
 void AntiDebugger(string Log = "") noexcept
 {
 	if (IsDebuggerPresent())
 	{
-		if (Log != "")printf((Log + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n").c_str());
+		if (Log != "")
+			printf((Log + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n").c_str());
 		ShowWindow(GetConsoleWindow(), false);
 		exit(0);
 	}
@@ -971,8 +986,8 @@ void Cheat()
 		Lang::GetCountry(MenuConfig::Country);
 		MenuConfig::MaxFrameRate = Init::Client::getMaxFrameRate();
 	}
-		
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);	//Gets a standard output device handle  
+
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // Gets a standard output device handle
 
 	srand((unsigned)time(NULL));
 	RandomTitle();
@@ -984,8 +999,8 @@ void Cheat()
 	createDriver();
 	kdmap(1, nullptr);
 	remove("ASDriver.sys");
-#endif // USERMODE
-	SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN);	//Set the text color to green  
+#endif																	   // USERMODE
+	SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN); // Set the text color to green
 	cout << R"(                                                                   
     ___    _          _____ __            
    /   |  (_)___ ___ / ___// /_____ ______
@@ -999,17 +1014,19 @@ void Cheat()
 	auto ProcessStatus = ProcessMgr.Attach(XorStr("cs2.exe"));
 
 	char documentsPath[MAX_PATH];
-	if (SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, documentsPath) != S_OK) {
+	if (SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, 0, documentsPath) != S_OK)
+	{
 		cerr << XorStr("[Info] Error: Failed to get the Documents folder path.") << endl;
 		Exit();
 	}
 	MenuConfig::path = documentsPath;
 	MenuConfig::path += XorStr("\\AimStar");
 	MenuConfig::HWID = Init::Client::G();
-	printf("%s\n",MenuConfig::HWID.substr(MenuConfig::HWID.length() - 16).c_str());
+	printf("%s\n", MenuConfig::HWID.substr(MenuConfig::HWID.length() - 16).c_str());
 	if (checkHWIDFromYAML(MenuConfig::HWID.substr(MenuConfig::HWID.length() - 16).c_str()))
 		MenuConfig::DRM = true;
-	switch (ProcessStatus) {
+	switch (ProcessStatus)
+	{
 	case 1:
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
 		cout << XorStr("[ERROR] Please launch the game first!") << endl;
@@ -1064,7 +1081,7 @@ void Cheat()
 	if (defaultConfig.is_open())
 	{
 		MenuConfig::defaultConfig = true;
-		defaultConfig.close();		
+		defaultConfig.close();
 	}
 	// Language initialize
 	UpdateLang();
@@ -1072,7 +1089,8 @@ void Cheat()
 	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
 	cout << XorStr("Cheat running successfully!") << endl;
 	cout << XorStr("Press [INS] or [DEL] to show or hide Menu.") << endl;
-	cout << XorStr("Have fun...") << endl << endl;
+	cout << XorStr("Have fun...") << endl
+		 << endl;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_RED);
 	cout << XorStr("=======[ Offset List ]=======") << endl;
 	cout << setw(23) << left << XorStr("EntityList:") << setiosflags(ios::uppercase) << hex << Offset::EntityList << endl;
@@ -1096,14 +1114,14 @@ void Cheat()
 	{
 		Gui.AttachAnotherWindow(XorStr("Counter-Strike 2"), XorStr("SDL_app"), Cheats::Run);
 	}
-	catch (OSImGui::OSException& e)
+	catch (OSImGui::OSException &e)
 	{
 		try
 		{
 			// Perfect World version
 			Gui.AttachAnotherWindow(XorStr("\u53cd\u6050\u7cbe\u82f1\uff1a\u5168\u7403\u653b\u52bf"), XorStr("SDL_app"), Cheats::Run);
 		}
-		catch (OSImGui::OSException& e)
+		catch (OSImGui::OSException &e)
 		{
 			cout << e.what() << endl;
 		}
@@ -1121,78 +1139,61 @@ int main(void)
 		otp = Init::Verify::isVerified(fileName);
 	}
 	*/
-	//#ifdef _DEBUG
+	// #ifdef _DEBUG
 
-	//#endif
-	otp = GlobalFindAtomA(XorStr("https://aimstar.tkm.icu"));
+	// #endif
+	Cheat();
+	return 0;
 
-	if (otp)
+	if (hwnd == NULL)
 	{
-		Cheat();
 		return 0;
 	}
-	else
+
+	ShowWindow(hwnd, SW_SHOW);
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		// OTP Window
-		WNDCLASS wc = { 0 };
-		const wchar_t CLASS_NAME[] = L"OTPInputClass";
-
-		wc.lpfnWndProc = WndProc;
-		wc.hInstance = GetModuleHandle(NULL);
-		wc.lpszClassName = CLASS_NAME;
-
-		RegisterClass(&wc);
-
-		HWND hwnd = CreateWindowEx(
-			0, CLASS_NAME, L"Verify", WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, 400, 200,
-			NULL, NULL, GetModuleHandle(NULL), NULL
-		);
-
-		if (hwnd == NULL) {
-			return 0;
-		}
-
-		ShowWindow(hwnd, SW_SHOW);
-		MSG msg;
-		while (GetMessage(&msg, NULL, 0, 0)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
-
-	return 0;
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	//bool showed = false;
+return 0;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	// bool showed = false;
 	if (!otp /*&& !showed*/)
 	{
 		cout << XorStr("Please enter your OTP code! Get the OTP code from: https://aimstar.tkm.icu") << endl;
-		//showed = true;
+		// showed = true;
 	}
 	static int RetTimes = 0;
 
-	switch (message) {
-        case WM_CREATE:
+	switch (message)
+	{
+	case WM_CREATE:
 	{
 		CreateWindowW(L"STATIC", L"Please enter your OTP code:",
-			WS_VISIBLE | WS_CHILD | SS_CENTER,
-			50, 20, 300, 20, hwnd, NULL, NULL, NULL);
+					  WS_VISIBLE | WS_CHILD | SS_CENTER,
+					  50, 20, 300, 20, hwnd, NULL, NULL, NULL);
 		CreateWindowW(L"EDIT", L"",
-			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-			100, 50, 200, 20, hwnd, (HMENU)2, NULL, NULL);
+					  WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+					  100, 50, 200, 20, hwnd, (HMENU)2, NULL, NULL);
 		CreateWindowW(L"BUTTON", L"Verify",
-			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-			215, 90, 70, 30, hwnd, (HMENU)1, NULL, NULL);
+					  WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+					  215, 90, 70, 30, hwnd, (HMENU)1, NULL, NULL);
 		CreateWindowW(L"BUTTON", L"Get OTP",
-			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-			115, 90, 70, 30, hwnd, (HMENU)3, NULL, NULL);
+					  WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+					  115, 90, 70, 30, hwnd, (HMENU)3, NULL, NULL);
 		break;
 	}
 	case WM_COMMAND:
 	{
-		if (LOWORD(wParam) == 1) {
+		if (LOWORD(wParam) == 1)
+		{
 			wchar_t buffer[10];
 			GetWindowTextW(GetDlgItem(hwnd, 2), buffer, 10);
 			wstring ws(buffer);
@@ -1200,23 +1201,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			string time, code;
 			Init::Verify::CodeGenerate(time, code);
 
-			if (input != code) {
+			if (input != code)
+			{
 				RetTimes++;
-				if (RetTimes < 3) {
+				if (RetTimes < 3)
+				{
 					MessageBox(hwnd, L"OTP code error!!", L"Error", MB_OK | MB_ICONERROR);
 				}
-				else {
+				else
+				{
 					MessageBox(hwnd, L"Exceeded maximum attempts.", L"Error", MB_OK | MB_ICONERROR);
 					DestroyWindow(hwnd);
 					Init::Client::QuitGame();
 					Exit();
 				}
 			}
-			else {
+			else
+			{
 				otp = true;
 				GlobalAddAtomA(XorStr("https://aimstar.tkm.icu"));
-				//ofstream outfile(fileName);
-				//outfile.close();
+				// ofstream outfile(fileName);
+				// outfile.close();
 				ShowWindow(hwnd, SW_HIDE);
 				system("cls");
 				Cheat();
@@ -1240,9 +1245,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return 0;
 }
 
-//junk code example
+// junk code example
 
-class ebptuih {
+class ebptuih
+{
 public:
 	string fnfajpg;
 	bool kkyshxlpqsqoub;
@@ -1274,44 +1280,52 @@ private:
 	int uetnpyavtprhpuh(int ubzdil, double ljlbqcgquxfwg);
 	void zuwroaqgvezrsinxzzlyceqse(string uwqrycps, string ttjhwwp, int susxdrq, int ubzval, string cojouymspmgshv, int heeljpyaeso);
 	double pwgkbsdtxqbm(double mlvdsgg, int wgbsm, bool amrcdxuxnggx, int ghpspd);
-
 };
 
-
-string ebptuih::wkwcumxngsdtqkwdlvbhxd(bool ubzgxeeqbo, int zwdodidvhb, bool zzhqhlbvfyfv, int yzwpiwgeeaza) {
+string ebptuih::wkwcumxngsdtqkwdlvbhxd(bool ubzgxeeqbo, int zwdodidvhb, bool zzhqhlbvfyfv, int yzwpiwgeeaza)
+{
 	double lukphxvjujny = 1406;
 	int pttwtexhzdq = 1116;
 	double ksliphaupzdfr = 73237;
 	double brbthyfgoogpyu = 20830;
 	int lkwbhdsu = 2545;
-	if (1116 != 1116) {
+	if (1116 != 1116)
+	{
 		int gkgynghi;
-		for (gkgynghi = 16; gkgynghi > 0; gkgynghi--) {
+		for (gkgynghi = 16; gkgynghi > 0; gkgynghi--)
+		{
 			continue;
 		}
 	}
-	if (1116 == 1116) {
+	if (1116 == 1116)
+	{
 		int obuuz;
-		for (obuuz = 24; obuuz > 0; obuuz--) {
+		for (obuuz = 24; obuuz > 0; obuuz--)
+		{
 			continue;
 		}
 	}
-	if (73237 != 73237) {
+	if (73237 != 73237)
+	{
 		int zbtuogj;
-		for (zbtuogj = 30; zbtuogj > 0; zbtuogj--) {
+		for (zbtuogj = 30; zbtuogj > 0; zbtuogj--)
+		{
 			continue;
 		}
 	}
-	if (2545 == 2545) {
+	if (2545 == 2545)
+	{
 		int hszueigy;
-		for (hszueigy = 31; hszueigy > 0; hszueigy--) {
+		for (hszueigy = 31; hszueigy > 0; hszueigy--)
+		{
 			continue;
 		}
 	}
 	return string("");
 }
 
-int ebptuih::uetnpyavtprhpuh(int ubzdil, double ljlbqcgquxfwg) {
+int ebptuih::uetnpyavtprhpuh(int ubzdil, double ljlbqcgquxfwg)
+{
 	int gahuaeaicyvwbxf = 1061;
 	string mumnn = "gwiclmkxtmiisyxqranckecscftyvgbazylcehgibwmrhtrdzdfhykmia";
 	bool vamjk = false;
@@ -1322,40 +1336,51 @@ int ebptuih::uetnpyavtprhpuh(int ubzdil, double ljlbqcgquxfwg) {
 	string vqgumetnyzhiy = "mwvvzyldqiayvhuspbxtomukmiaerihvuaardcwgnealu";
 	bool ouunkulcr = true;
 	int kpush = 4067;
-	if (1061 == 1061) {
+	if (1061 == 1061)
+	{
 		int inpqauxq;
-		for (inpqauxq = 6; inpqauxq > 0; inpqauxq--) {
+		for (inpqauxq = 6; inpqauxq > 0; inpqauxq--)
+		{
 			continue;
 		}
 	}
-	if (1061 != 1061) {
+	if (1061 != 1061)
+	{
 		int bgzukqc;
-		for (bgzukqc = 73; bgzukqc > 0; bgzukqc--) {
+		for (bgzukqc = 73; bgzukqc > 0; bgzukqc--)
+		{
 			continue;
 		}
 	}
-	if (false != false) {
+	if (false != false)
+	{
 		int zp;
-		for (zp = 32; zp > 0; zp--) {
+		for (zp = 32; zp > 0; zp--)
+		{
 			continue;
 		}
 	}
-	if (4067 != 4067) {
+	if (4067 != 4067)
+	{
 		int qrfqibm;
-		for (qrfqibm = 52; qrfqibm > 0; qrfqibm--) {
+		for (qrfqibm = 52; qrfqibm > 0; qrfqibm--)
+		{
 			continue;
 		}
 	}
-	if (68110 == 68110) {
+	if (68110 == 68110)
+	{
 		int xnpbkicqas;
-		for (xnpbkicqas = 68; xnpbkicqas > 0; xnpbkicqas--) {
+		for (xnpbkicqas = 68; xnpbkicqas > 0; xnpbkicqas--)
+		{
 			continue;
 		}
 	}
 	return 3892;
 }
 
-void ebptuih::zuwroaqgvezrsinxzzlyceqse(string uwqrycps, string ttjhwwp, int susxdrq, int ubzval, string cojouymspmgshv, int heeljpyaeso) {
+void ebptuih::zuwroaqgvezrsinxzzlyceqse(string uwqrycps, string ttjhwwp, int susxdrq, int ubzval, string cojouymspmgshv, int heeljpyaeso)
+{
 	double ytslwcuyb = 39509;
 	bool xvkhvdhvejz = true;
 	int dofntdrwgaq = 3981;
@@ -1363,22 +1388,26 @@ void ebptuih::zuwroaqgvezrsinxzzlyceqse(string uwqrycps, string ttjhwwp, int sus
 	double pkkpjjtdysvjwin = 24946;
 	double azmoygndqagj = 21266;
 	bool xvyymtt = true;
-	if (21266 != 21266) {
+	if (21266 != 21266)
+	{
 		int vdxbspjpp;
-		for (vdxbspjpp = 38; vdxbspjpp > 0; vdxbspjpp--) {
+		for (vdxbspjpp = 38; vdxbspjpp > 0; vdxbspjpp--)
+		{
 			continue;
 		}
 	}
-	if (3981 != 3981) {
+	if (3981 != 3981)
+	{
 		int ipmcdvt;
-		for (ipmcdvt = 83; ipmcdvt > 0; ipmcdvt--) {
+		for (ipmcdvt = 83; ipmcdvt > 0; ipmcdvt--)
+		{
 			continue;
 		}
 	}
-
 }
 
-double ebptuih::pwgkbsdtxqbm(double mlvdsgg, int wgbsm, bool amrcdxuxnggx, int ghpspd) {
+double ebptuih::pwgkbsdtxqbm(double mlvdsgg, int wgbsm, bool amrcdxuxnggx, int ghpspd)
+{
 	double gfkythdb = 18116;
 	string bhgmnkgl = "jqgywcacpjzhpfaxdozubboraazlcjtvlherglytuuaoqqxqghrfu";
 	double obshsk = 79784;
@@ -1388,22 +1417,27 @@ double ebptuih::pwgkbsdtxqbm(double mlvdsgg, int wgbsm, bool amrcdxuxnggx, int g
 	double ibaezldhrja = 36599;
 	double xnrwpuwnhdrodlg = 42581;
 	string slrjrgk = "asdqpmpubrtveahsuhddusjiegpkoykyzffuvxhmoxetmslfspxeadsl";
-	if (12971 == 12971) {
+	if (12971 == 12971)
+	{
 		int uteplkcjqf;
-		for (uteplkcjqf = 81; uteplkcjqf > 0; uteplkcjqf--) {
+		for (uteplkcjqf = 81; uteplkcjqf > 0; uteplkcjqf--)
+		{
 			continue;
 		}
 	}
-	if (18116 == 18116) {
+	if (18116 == 18116)
+	{
 		int hemtoca;
-		for (hemtoca = 41; hemtoca > 0; hemtoca--) {
+		for (hemtoca = 41; hemtoca > 0; hemtoca--)
+		{
 			continue;
 		}
 	}
 	return 93484;
 }
 
-void ebptuih::ubntqxvlywbgwqvzzzi(string pllqzcsn, bool onfhgk, int uiwtsdsldqqrwf, bool xmnvvuagxgq) {
+void ebptuih::ubntqxvlywbgwqvzzzi(string pllqzcsn, bool onfhgk, int uiwtsdsldqqrwf, bool xmnvvuagxgq)
+{
 	double xbdfnlia = 38400;
 	string bybucu = "wegawwbuuznkjvrzrzioviitvdheuuepfuuulflsdvekhdduykrcqaepouupgbaf";
 	bool yfmxhlymymltkxl = false;
@@ -1414,45 +1448,56 @@ void ebptuih::ubntqxvlywbgwqvzzzi(string pllqzcsn, bool onfhgk, int uiwtsdsldqqr
 	bool ygshxczpqaq = false;
 	double acotasimriork = 15509;
 	double vegmvxulgkjaq = 16539;
-
 }
 
-bool ebptuih::znrmwqayabrvarfiw(string nrnfqolf, double toxpir, bool sabvrfgjyqvi, double afhss) {
+bool ebptuih::znrmwqayabrvarfiw(string nrnfqolf, double toxpir, bool sabvrfgjyqvi, double afhss)
+{
 	int ahkdqa = 5989;
-	if (5989 != 5989) {
+	if (5989 != 5989)
+	{
 		int tsiemt;
-		for (tsiemt = 45; tsiemt > 0; tsiemt--) {
+		for (tsiemt = 45; tsiemt > 0; tsiemt--)
+		{
 			continue;
 		}
 	}
-	if (5989 == 5989) {
+	if (5989 == 5989)
+	{
 		int fyiv;
-		for (fyiv = 73; fyiv > 0; fyiv--) {
+		for (fyiv = 73; fyiv > 0; fyiv--)
+		{
 			continue;
 		}
 	}
-	if (5989 != 5989) {
+	if (5989 != 5989)
+	{
 		int zrb;
-		for (zrb = 37; zrb > 0; zrb--) {
+		for (zrb = 37; zrb > 0; zrb--)
+		{
 			continue;
 		}
 	}
-	if (5989 == 5989) {
+	if (5989 == 5989)
+	{
 		int fgxdrrruj;
-		for (fgxdrrruj = 73; fgxdrrruj > 0; fgxdrrruj--) {
+		for (fgxdrrruj = 73; fgxdrrruj > 0; fgxdrrruj--)
+		{
 			continue;
 		}
 	}
-	if (5989 != 5989) {
+	if (5989 != 5989)
+	{
 		int tswcu;
-		for (tswcu = 57; tswcu > 0; tswcu--) {
+		for (tswcu = 57; tswcu > 0; tswcu--)
+		{
 			continue;
 		}
 	}
 	return true;
 }
 
-void ebptuih::ymryjbajxfp(string qkvsm, double gunaabrj, string izpcrqp, bool zaxnmgpltmke, string xwwvdhkeimcb, string gqfoxi, int sclozmfvgaaml, int sdvxsjgcgtex, double vuagbzvte) {
+void ebptuih::ymryjbajxfp(string qkvsm, double gunaabrj, string izpcrqp, bool zaxnmgpltmke, string xwwvdhkeimcb, string gqfoxi, int sclozmfvgaaml, int sdvxsjgcgtex, double vuagbzvte)
+{
 	double qhhwzitm = 34405;
 	double lucuipsxlvkaspf = 14348;
 	string fdcnyocp = "qlvmwdhgxibgthfr";
@@ -1463,16 +1508,18 @@ void ebptuih::ymryjbajxfp(string qkvsm, double gunaabrj, string izpcrqp, bool za
 	string anthagrggl = "vtizbnopxhqx";
 	bool ahkbpccnesepvn = true;
 	bool agremggimw = true;
-	if (string("qibhijpgxhvwvzfxjqtjsmuhmsjuphsqsrysvtwlzxzegzydvfhifsblzlufovzrxeztuengjsqsdvotblhdhyfimgqscjaw") != string("qibhijpgxhvwvzfxjqtjsmuhmsjuphsqsrysvtwlzxzegzydvfhifsblzlufovzrxeztuengjsqsdvotblhdhyfimgqscjaw")) {
+	if (string("qibhijpgxhvwvzfxjqtjsmuhmsjuphsqsrysvtwlzxzegzydvfhifsblzlufovzrxeztuengjsqsdvotblhdhyfimgqscjaw") != string("qibhijpgxhvwvzfxjqtjsmuhmsjuphsqsrysvtwlzxzegzydvfhifsblzlufovzrxeztuengjsqsdvotblhdhyfimgqscjaw"))
+	{
 		int ovupv;
-		for (ovupv = 47; ovupv > 0; ovupv--) {
+		for (ovupv = 47; ovupv > 0; ovupv--)
+		{
 			continue;
 		}
 	}
-
 }
 
-void ebptuih::cfivktipmwqlfb(double xbmezj, bool jqfwyfypgbd, bool gzecczwp) {
+void ebptuih::cfivktipmwqlfb(double xbmezj, bool jqfwyfypgbd, bool gzecczwp)
+{
 	int jukknyluf = 3043;
 	bool wmvhsrakxmgtmvm = false;
 	int mhhqboottwnph = 6062;
@@ -1480,38 +1527,44 @@ void ebptuih::cfivktipmwqlfb(double xbmezj, bool jqfwyfypgbd, bool gzecczwp) {
 	bool aobouutpm = true;
 	bool lgezxvs = true;
 	double pqwhflwatjxk = 33437;
-	if (6062 != 6062) {
+	if (6062 != 6062)
+	{
 		int zb;
-		for (zb = 9; zb > 0; zb--) {
+		for (zb = 9; zb > 0; zb--)
+		{
 			continue;
 		}
 	}
-	if (6062 != 6062) {
+	if (6062 != 6062)
+	{
 		int extkvvdxd;
-		for (extkvvdxd = 15; extkvvdxd > 0; extkvvdxd--) {
+		for (extkvvdxd = 15; extkvvdxd > 0; extkvvdxd--)
+		{
 			continue;
 		}
 	}
-
 }
 
-void ebptuih::iujhvnqfxghcmp(string rhogvmixyiizovo) {
+void ebptuih::iujhvnqfxghcmp(string rhogvmixyiizovo)
+{
 	string yshrg = "pwidykcqnoqbgmmrsmrytuywggfyeyhjzjqjaphsrtsdgdpaaxwvcjdokswvhukdmncgyvkrufeyukrikasozbyf";
 	int tkcvgdma = 339;
 	string nyfslihspgimmb = "kyshp";
 	int ymbcqegn = 1724;
 	int jprla = 1269;
 	double fiyvgwiygisqu = 14366;
-	if (1269 != 1269) {
+	if (1269 != 1269)
+	{
 		int lkabvzcgd;
-		for (lkabvzcgd = 70; lkabvzcgd > 0; lkabvzcgd--) {
+		for (lkabvzcgd = 70; lkabvzcgd > 0; lkabvzcgd--)
+		{
 			continue;
 		}
 	}
-
 }
 
-string ebptuih::pwihnpjgfw(double mqqeousli, string naktdaucyqwah, bool fptygdyf, bool refojhhijciup, int hixnq, double wmdwn, bool fxtokfxdzcc) {
+string ebptuih::pwihnpjgfw(double mqqeousli, string naktdaucyqwah, bool fptygdyf, bool refojhhijciup, int hixnq, double wmdwn, bool fxtokfxdzcc)
+{
 	string uxfxavzwxrwsyim = "lwnnlhnwsuklhvwibkijf";
 	double owtbkwbpnngbi = 8082;
 	int hiqprvoapzj = 1271;
@@ -1522,73 +1575,92 @@ string ebptuih::pwihnpjgfw(double mqqeousli, string naktdaucyqwah, bool fptygdyf
 	double hzylusnctirny = 23161;
 	int jlipzenhkkilw = 7404;
 	int qupmiymubple = 8366;
-	if (23161 != 23161) {
+	if (23161 != 23161)
+	{
 		int uv;
-		for (uv = 21; uv > 0; uv--) {
+		for (uv = 21; uv > 0; uv--)
+		{
 			continue;
 		}
 	}
 	return string("sq");
 }
 
-bool ebptuih::fchgcdqvulnnkgnlakewqkzu(bool zatjjxxevbaefp, int ktyvszyjdlleoxl, double typlipntsfpva, int sbqsbbvhji, bool txilungyrny, bool caxwqttrrzonh, double rkuwefvbl, int rdson, bool xcejqowggqddb) {
+bool ebptuih::fchgcdqvulnnkgnlakewqkzu(bool zatjjxxevbaefp, int ktyvszyjdlleoxl, double typlipntsfpva, int sbqsbbvhji, bool txilungyrny, bool caxwqttrrzonh, double rkuwefvbl, int rdson, bool xcejqowggqddb)
+{
 	string osofiryxgpr = "tsbhdqsrajtkqcdhkjlgycrtpocjbxqstte";
 	double mkjws = 53514;
 	bool zcbtxqyooplqp = true;
 	double ujdiufzfdgtaj = 26257;
 	double srbazksev = 23098;
 	string eikouwgvepqmsl = "ujsdjfhalvjughvfburwznptqfqrhdbrjlkjkdzpoibaqxldoqnfbgozdajpyyzvfoolmegvghmofdg";
-	if (23098 == 23098) {
+	if (23098 == 23098)
+	{
 		int hinqf;
-		for (hinqf = 15; hinqf > 0; hinqf--) {
+		for (hinqf = 15; hinqf > 0; hinqf--)
+		{
 			continue;
 		}
 	}
-	if (23098 == 23098) {
+	if (23098 == 23098)
+	{
 		int mxgefte;
-		for (mxgefte = 50; mxgefte > 0; mxgefte--) {
+		for (mxgefte = 50; mxgefte > 0; mxgefte--)
+		{
 			continue;
 		}
 	}
-	if (53514 != 53514) {
+	if (53514 != 53514)
+	{
 		int apvbt;
-		for (apvbt = 14; apvbt > 0; apvbt--) {
+		for (apvbt = 14; apvbt > 0; apvbt--)
+		{
 			continue;
 		}
 	}
-	if (23098 != 23098) {
+	if (23098 != 23098)
+	{
 		int ribxwy;
-		for (ribxwy = 31; ribxwy > 0; ribxwy--) {
+		for (ribxwy = 31; ribxwy > 0; ribxwy--)
+		{
 			continue;
 		}
 	}
 	return true;
 }
 
-string ebptuih::fncpivawvfptwrwvjx(int qrkhjtplfkaf, bool yqljsuzpl, bool iahactzd) {
+string ebptuih::fncpivawvfptwrwvjx(int qrkhjtplfkaf, bool yqljsuzpl, bool iahactzd)
+{
 	int belltrte = 8438;
-	if (8438 == 8438) {
+	if (8438 == 8438)
+	{
 		int muukt;
-		for (muukt = 54; muukt > 0; muukt--) {
+		for (muukt = 54; muukt > 0; muukt--)
+		{
 			continue;
 		}
 	}
-	if (8438 == 8438) {
+	if (8438 == 8438)
+	{
 		int fuxlft;
-		for (fuxlft = 22; fuxlft > 0; fuxlft--) {
+		for (fuxlft = 22; fuxlft > 0; fuxlft--)
+		{
 			continue;
 		}
 	}
-	if (8438 != 8438) {
+	if (8438 != 8438)
+	{
 		int qlmu;
-		for (qlmu = 23; qlmu > 0; qlmu--) {
+		for (qlmu = 23; qlmu > 0; qlmu--)
+		{
 			continue;
 		}
 	}
 	return string("smurmx");
 }
 
-ebptuih::ebptuih() {
+ebptuih::ebptuih()
+{
 	this->znrmwqayabrvarfiw(string("onkrkmujecnhjagrhexfkcksyeflpulxunoejocphjxlofthbzgtyybqlnentcllwqsdqhn"), 17472, true, 17410);
 	this->ymryjbajxfp(string("duhlwbybgdavmsdvefjuvtwfyfudjlkzixxzhcvbyizvoruqeqdzbmrgfplzzeekcadofwjpruwpeapdyakz"), 22144, string("fvjffwqeziqiqjtoaquvqcqaxfgwnvenpchupzrkxjsgaaaoazpsqkrnhalzeeinoihaitxtlkzhx"), false, string("zucwyvjlflrbrgfnvacjgagvyceixfhilutsgmwluyjelbgyydyzbmdiodfpncmhxnropajppimtbmfyfpdynbhwns"), string("ezonhxmiubyscczlyaojpfhtlllzcpupcaxfiemeapxljrjrsanjjfajmmasgpolwqk"), 1516, 6265, 13270);
 	this->cfivktipmwqlfb(66814, true, true);
