@@ -65,7 +65,7 @@ namespace Misc
 	static inline void CheatText(const char* Cheat, bool config)
 	{
 		if (config)
-			ImGui::Text(Cheat);
+			ImGui::RainbowText(Cheat);
 			// ImGui::chromaText(Cheat, 10.f, 5.f, 1.f, 50.f, 0.02f, 0.08f);
 	}
 
